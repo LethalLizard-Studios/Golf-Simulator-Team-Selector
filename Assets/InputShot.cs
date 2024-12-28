@@ -1,13 +1,15 @@
 using DG.Tweening;
 using System.Collections.Generic;
+using System.Net;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEngine.GraphicsBuffer;
 
 public class InputShot : MonoBehaviour
 {
     public int numberOfShots = 3;
+
+    [SerializeField] private MusicKits musicKits;
 
     [SerializeField] private GameObject shotMarkerPrefab;
     [SerializeField] private GameObject connectorPrefab;
@@ -64,7 +66,7 @@ public class InputShot : MonoBehaviour
 
     public void PlayerAdded()
     {
-        playerNameTxt.text = Players.Instance.playerName[currentPlayer];
+        playerNameTxt.text = Players.Instance.playerData[currentPlayer].displayName;
 
         shotScreen.SetActive(true);
         playerScreen.SetActive(false);
@@ -75,6 +77,12 @@ public class InputShot : MonoBehaviour
 
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            carryInput.text = Random.Range(10, 300).ToString();
+            offlineInput.text = Random.Range(-30.0f, 30.0f).ToString();
+        }
+
         if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.RightShift))
         {
             switch (state)
@@ -106,12 +114,16 @@ public class InputShot : MonoBehaviour
                     carryMarker.gameObject.SetActive(true);
 
                     Club club = Players.Instance.clubs[currentClub];
-                    club.playerShots[currentPlayer] = new Vector2(markerPos.x, markerPos.y);
+
+                    if (club.playerShots[currentPlayer] == null || club.playerShots[currentPlayer] == Vector2.zero)
+                        club.playerShots[currentPlayer] = new Vector2(markerPos.x, markerPos.y);
+                    else
+                        club.playerShotsSecondary[currentPlayer] = new Vector2(markerPos.x, markerPos.y);
 
                     if (result > club.bestPlayerResult)
                     {
                         club.bestPlayerResult = result;
-                        club.bestPlayerName = Players.Instance.playerName[currentPlayer];
+                        club.bestPlayerName = Players.Instance.playerData[currentPlayer].displayName;
                     }
 
                     break;
@@ -119,7 +131,7 @@ public class InputShot : MonoBehaviour
                     GameObject shotMarker = Instantiate(shotMarkerPrefab, shotParent);
                     displayShots.Add(shotMarker);
 
-                    shotMarker.GetComponent<Image>().color = Players.Instance.playerColor[currentPlayer];
+                    shotMarker.GetComponent<Image>().color = Players.Instance.colors[Players.Instance.playerData[currentPlayer].colorIndex];
                     shotMarker.transform.localPosition = new Vector3(Mathf.Clamp(offline * 6f, -160f, 160f), carryDist, 0f);
 
                     carryMarker.gameObject.SetActive(false);
@@ -128,7 +140,8 @@ public class InputShot : MonoBehaviour
                     
                     CurvedLine curvedLine = line.GetComponent<CurvedLine>();
                     curvedLine.endPoint = shotMarker.transform.localPosition;
-                    curvedLine.color = Players.Instance.playerColor[currentPlayer];
+                    curvedLine.color = Players.Instance.colors[Players.Instance.playerData[currentPlayer].colorIndex];
+                    curvedLine.controlPoint = new Vector2(0, curvedLine.endPoint.y * 0.8f);
                     curvedLine.enabled = true;
 
                     displayShots.Add(line);
@@ -151,8 +164,6 @@ public class InputShot : MonoBehaviour
                             Players.Instance.playerScore[currentPlayer] += clubScore;
                         }
 
-                        Debug.Log(clubScore);
-
                         lastPos.Clear();
                         lastScore.Clear();
 
@@ -169,13 +180,7 @@ public class InputShot : MonoBehaviour
                             }
                             else
                             {
-                                playerNameTxt.text = Players.Instance.playerName[currentPlayer];
-                                playerNameTxt.transform.DOScale(1.3f, 0.5f / 2)
-                                    .SetEase(Ease.OutBack)
-                                    .OnComplete(() =>
-                                    {
-                                        playerNameTxt.transform.DOScale(1f, 0.5f / 2).SetEase(Ease.InBack);
-                                    });
+                                ChangeTargetPlayer();
                             }
                         }
                         else
@@ -198,13 +203,7 @@ public class InputShot : MonoBehaviour
                                     });
 
                                 currentPlayer = 0;
-                                playerNameTxt.text = Players.Instance.playerName[currentPlayer];
-                                playerNameTxt.transform.DOScale(1.3f, 0.5f / 2)
-                                    .SetEase(Ease.OutBack)
-                                    .OnComplete(() =>
-                                    {
-                                        playerNameTxt.transform.DOScale(1f, 0.5f / 2).SetEase(Ease.InBack);
-                                    });
+                                ChangeTargetPlayer();
 
                                 currentShot = 1;
                             }
@@ -232,6 +231,19 @@ public class InputShot : MonoBehaviour
             state = Mathf.Clamp(state - 1, 0, 1);
             carryMarker.gameObject.SetActive(false);
         }
+    }
+
+    private void ChangeTargetPlayer()
+    {
+        playerNameTxt.text = Players.Instance.playerData[currentPlayer].displayName;
+        playerNameTxt.transform.DOScale(1.3f, 0.5f / 2)
+            .SetEase(Ease.OutBack)
+            .OnComplete(() =>
+            {
+                playerNameTxt.transform.DOScale(1f, 0.5f / 2).SetEase(Ease.InBack);
+            });
+
+        musicKits.SelectSong(Players.Instance.playerData[currentPlayer].turnMusicIndex);
     }
 
     public int CalcShotScore(int carryDist, float offline)

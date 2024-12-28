@@ -49,7 +49,11 @@ public class Recap : MonoBehaviour
 
         yield return new WaitForSeconds(6.0f);
 
-        _clubIndex++;
+        if (_clubIndex < _currentClubs.Length - 1)
+            _clubIndex++;
+        else
+            _clubIndex = 0;
+
         StartCoroutine(ChangeClub());
     }
 
@@ -70,17 +74,33 @@ public class Recap : MonoBehaviour
 
         GameObject marker = Instantiate(shotMarkerPrefab, parentHolder);
         marker.transform.localPosition = _currentClubs[_clubIndex].playerShots[playerIndex];
-        marker.GetComponent<Image>().color = Players.Instance.playerColor[playerIndex];
+        marker.GetComponent<Image>().color = players.colors[players.playerData[playerIndex].colorIndex];
         marker.SetActive(true);
+
+        GameObject marker2 = Instantiate(shotMarkerPrefab, parentHolder);
+        marker2.transform.localPosition = _currentClubs[_clubIndex].playerShotsSecondary[playerIndex];
+        marker2.GetComponent<Image>().color = players.colors[players.playerData[playerIndex].colorIndex];
+        marker2.SetActive(true);
 
         GameObject line = Instantiate(linePrefab, parentHolder);
 
         CurvedLine curvedLine = line.GetComponent<CurvedLine>();
         curvedLine.endPoint = marker.transform.localPosition;
-        curvedLine.color = Players.Instance.playerColor[playerIndex];
+        curvedLine.color = players.colors[players.playerData[playerIndex].colorIndex];
+        curvedLine.controlPoint = new Vector2(0, curvedLine.endPoint.y * 0.8f);
         curvedLine.enabled = true;
 
+        GameObject line2 = Instantiate(linePrefab, parentHolder);
+
+        CurvedLine curvedLine2 = line2.GetComponent<CurvedLine>();
+        curvedLine2.endPoint = marker2.transform.localPosition;
+        curvedLine2.color = players.colors[players.playerData[playerIndex].colorIndex];
+        curvedLine2.controlPoint = new Vector2(0, curvedLine2.endPoint.y * 0.8f);
+        curvedLine2.enabled = true;
+
         _lines.Add(line);
+        _lines.Add(line2);
         _markers.Add(marker);
+        _markers.Add(marker2);
     }
 }

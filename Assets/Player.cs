@@ -6,17 +6,20 @@ public class Player : MonoBehaviour
 {
     [SerializeField] private Image medal;
     [SerializeField] private Image background;
-    [SerializeField] private TextMeshProUGUI name;
-    [SerializeField] private TextMeshProUGUI score;
+    [SerializeField] private Image playerIcon;
+    [SerializeField] private TextMeshProUGUI nameText;
+    [SerializeField] private TextMeshProUGUI scoreText;
 
     public int totalScore = 0;
     public string playerName = "";
+    public Color playerColor;
 
     public void Initalize(string name, int score, Color team)
     {
-        this.name.text = name;
-        this.score.text = ""+score;
+        this.nameText.text = name;
+        this.scoreText.text = ""+score;
 
+        playerIcon.color = playerColor;
         background.color = team;
     }
 

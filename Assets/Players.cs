@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,11 +21,13 @@ public class Players : MonoBehaviour
     public GameObject numOfPlayersScreen;
     public int numberOfPlayers = 0;
 
-    public List<string> playerName = new List<string>();
-    public List<Color> playerColor = new List<Color>();
+    public List<PlayerData> playerData = new List<PlayerData>();
+
     public List<int> playerScore = new List<int>();
 
-    public List<Color> availableColors = new List<Color>();
+    public Color[] colors;
+
+    private Dictionary<int, Color> _availableColors = new Dictionary<int, Color>();
 
     [SerializeField] private Color[] poduimFinishColor = new Color[3];
     [SerializeField] private Color[] teamColors = new Color[2];
@@ -32,6 +35,7 @@ public class Players : MonoBehaviour
     [SerializeField] private Image colorPreview;
     [SerializeField] private TMP_InputField nameInput;
     [SerializeField] private TMP_InputField playersInput;
+    [SerializeField] private TMP_Dropdown musicDropdown;
 
     public InputShot shot;
 
@@ -41,15 +45,20 @@ public class Players : MonoBehaviour
     public List<Club> clubs = new List<Club>();
 
     private int currentColor = 0;
+    private int currentColorIndex = 0;
 
     private void Start()
     {
+        _availableColors.Clear();
+        for (int i = 0; i < colors.Length; i++)
+            _availableColors.Add(i, colors[i]);
+
         Initialize();
     }
 
     public void Initialize()
     {
-        if (playerName.Count < 1)
+        if (playerData.Count < 1)
         {
             numOfPlayersScreen.SetActive(true);
         }
@@ -58,24 +67,29 @@ public class Players : MonoBehaviour
             numOfPlayersScreen.SetActive(false);
         }
 
-        colorPreview.color = availableColors[0];
+        colorPreview.color = _availableColors.Values.ToArray()[0];
         currentColor = 0;
+        currentColorIndex = _availableColors.Keys.ToArray()[0];
 
         nameInput.text = string.Empty;
     }
 
     public void ChangeColor()
     {
-        if (currentColor + 1 < availableColors.Count)
+        if (currentColor + 1 < _availableColors.Count)
             currentColor++;
         else
             currentColor = 0;
 
-        colorPreview.color = availableColors[currentColor];
+        colorPreview.color = _availableColors.Values.ToArray()[currentColor];
+        currentColorIndex = _availableColors.Keys.ToArray()[currentColor];
     }
 
     public void ConfirmPlayer()
     {
+        if (playersInput.text.Length <= 0 || int.Parse(playersInput.text) == 0)
+            return;
+
         if (numOfPlayersScreen.activeSelf)
         {
             numberOfPlayers = int.Parse(playersInput.text);
@@ -84,10 +98,8 @@ public class Players : MonoBehaviour
                 clubs.Add(new Club(clubName[i], numberOfPlayers));
         }
 
-        playerName.Add(nameInput.text);
-        playerColor.Add(availableColors[currentColor]);
-
-        availableColors.RemoveAt(currentColor);
+        playerData.Add(new PlayerData(nameInput.text, currentColorIndex, musicDropdown.value));
+        _availableColors.Remove(currentColorIndex);
 
         shot.PlayerAdded();
 
@@ -105,12 +117,13 @@ public class Players : MonoBehaviour
         Player bronze = null;
         List<Player> other = new List<Player>();
 
-        for (int i = 0; i < playerName.Count; i++)
+        for (int i = 0; i < playerData.Count; i++)
         {
             GameObject playerObj = Instantiate(playerPrefab, redParent);
             Player current = playerObj.GetComponent<Player>();
 
-            current.playerName = playerName[i];
+            current.playerName = playerData[i].displayName;
+            current.playerColor =colors[playerData[i].colorIndex];
             current.totalScore = playerScore[i];
 
             if (playerScore[i] > goldScore)
@@ -163,19 +176,19 @@ public class Players : MonoBehaviour
         gold.Initalize(gold.playerName, gold.totalScore, teamColors[0]);
         gold.PoduimFinish(poduimFinishColor[0]);
 
-        if (playerName.Count > 1)
+        if (playerData.Count > 1)
         {
             silver.Initalize(silver.playerName, silver.totalScore, teamColors[1]);
             silver.PoduimFinish(poduimFinishColor[1]);
         }
 
-        if (playerName.Count > 2)
+        if (playerData.Count > 2)
         {
             bronze.Initalize(bronze.playerName, bronze.totalScore, teamColors[1]);
             bronze.PoduimFinish(poduimFinishColor[2]);
         }
 
-        if (playerName.Count > 3)
+        if (playerData.Count > 3)
         {
             for (int i = 0; i < other.Count; i++)
             {
