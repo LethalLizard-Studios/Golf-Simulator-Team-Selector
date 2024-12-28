@@ -1,6 +1,5 @@
 using DG.Tweening;
 using System.Collections.Generic;
-using System.Net;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -35,6 +34,8 @@ public class InputShot : MonoBehaviour
 
     [SerializeField] private int result = 0;
 
+    [SerializeField] private ClubToggle[] toggles;
+
     private const float OFFLINE_WEIGHT = 0.045f;
 
     // 0 = CARRY, 1 = OFFLINE WHOLE, 2 = OFFLINE DECIMAL, 3 = NEXT SHOT/PERSON
@@ -48,6 +49,9 @@ public class InputShot : MonoBehaviour
 
     private void Start()
     {
+        for (int i = 0; i < toggles.Length; i++)
+            toggles[i].CheckAndAdd();
+
         carryMarker.gameObject.SetActive(false);
 
         AddPlayer();
@@ -185,7 +189,7 @@ public class InputShot : MonoBehaviour
                         }
                         else
                         {
-                            if (currentClub + 1 < Players.Instance.clubName.Length)
+                            if (currentClub + 1 < Players.Instance.clubName.Count)
                             {
                                 foreach (GameObject marker in displayShots)
                                 {

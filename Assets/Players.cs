@@ -39,8 +39,8 @@ public class Players : MonoBehaviour
 
     public InputShot shot;
 
-    public string[] clubName;
-    public Sprite[] clubImages;
+    public List<string> clubName = new List<string>();
+    public List<Sprite> clubImages = new List<Sprite>();
 
     public List<Club> clubs = new List<Club>();
 
@@ -94,7 +94,7 @@ public class Players : MonoBehaviour
         {
             numberOfPlayers = int.Parse(playersInput.text);
 
-            for (int i = 0; i < clubName.Length; i++)
+            for (int i = 0; i < clubName.Count; i++)
                 clubs.Add(new Club(clubName[i], numberOfPlayers));
         }
 
