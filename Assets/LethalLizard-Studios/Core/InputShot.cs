@@ -34,7 +34,7 @@ public class InputShot : MonoBehaviour
 
     [SerializeField] private int result = 0;
 
-    [SerializeField] private ClubToggle[] toggles;
+    [SerializeField] private ClubSelection clubSelection;
 
     private const float OFFLINE_WEIGHT = 0.045f;
 
@@ -49,15 +49,12 @@ public class InputShot : MonoBehaviour
 
     private void Start()
     {
-        for (int i = 0; i < toggles.Length; i++)
-            toggles[i].CheckAndAdd();
-
         carryMarker.gameObject.SetActive(false);
 
         AddPlayer();
 
-        clubNameTxt.text = Players.Instance.clubName[0];
-        clubImage.sprite = Players.Instance.clubImages[0];
+        clubNameTxt.text = clubSelection.GetClub(0).GetDisplayName();
+        clubImage.sprite = clubSelection.GetClub(0).GetIcon();
 
         shotNumTxt.text = currentShot + " / " + numberOfShots;
     }
@@ -189,7 +186,7 @@ public class InputShot : MonoBehaviour
                         }
                         else
                         {
-                            if (currentClub + 1 < Players.Instance.clubName.Count)
+                            if (currentClub + 1 < clubSelection.GetClubCount())
                             {
                                 foreach (GameObject marker in displayShots)
                                 {
@@ -197,8 +194,8 @@ public class InputShot : MonoBehaviour
                                 }
 
                                 currentClub++;
-                                clubNameTxt.text = Players.Instance.clubName[currentClub];
-                                clubImage.sprite = Players.Instance.clubImages[currentClub];
+                                clubNameTxt.text = clubSelection.GetClub(0).GetDisplayName();
+                                clubImage.sprite = clubSelection.GetClub(0).GetIcon();
                                 clubImage.transform.DOScale(1.3f, 0.5f / 2)
                                     .SetEase(Ease.OutBack)
                                     .OnComplete(() =>
@@ -247,7 +244,7 @@ public class InputShot : MonoBehaviour
                 playerNameTxt.transform.DOScale(1f, 0.5f / 2).SetEase(Ease.InBack);
             });
 
-        musicKits.SelectSong(Players.Instance.playerData[currentPlayer].turnMusicIndex);
+        //musicKits.SelectSong(Players.Instance.playerData[currentPlayer].turnMusicIndex);
     }
 
     public int CalcShotScore(int carryDist, float offline)

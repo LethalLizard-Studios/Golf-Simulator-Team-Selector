@@ -32,15 +32,14 @@ public class Players : MonoBehaviour
     [SerializeField] private Color[] poduimFinishColor = new Color[3];
     [SerializeField] private Color[] teamColors = new Color[2];
 
+    [SerializeField] private ClubSelection clubSelection;
+
     [SerializeField] private Image colorPreview;
     [SerializeField] private TMP_InputField nameInput;
     [SerializeField] private TMP_InputField playersInput;
     [SerializeField] private TMP_Dropdown musicDropdown;
 
     public InputShot shot;
-
-    public List<string> clubName = new List<string>();
-    public List<Sprite> clubImages = new List<Sprite>();
 
     public List<Club> clubs = new List<Club>();
 
@@ -94,8 +93,10 @@ public class Players : MonoBehaviour
         {
             numberOfPlayers = int.Parse(playersInput.text);
 
-            for (int i = 0; i < clubName.Count; i++)
-                clubs.Add(new Club(clubName[i], numberOfPlayers));
+            for (int i = 0; i < clubSelection.GetClubCount(); i++)
+            {
+                clubs.Add(new Club(clubSelection.GetClub(i).GetDisplayName(), numberOfPlayers));
+            }
         }
 
         playerData.Add(new PlayerData(nameInput.text, currentColorIndex, musicDropdown.value));
