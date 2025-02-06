@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 public static class AccountManager
@@ -12,6 +13,20 @@ public static class AccountManager
         {
             Directory.CreateDirectory(accountsFolderPath);
         }
+    }
+
+    public static string GenerateUniqueIdentification()
+    {
+        const string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+        HashSet<string> existingIds = new HashSet<string>(LoadAllAccounts().Select(a => a.identification));
+        string newId;
+
+        do
+        {
+            newId = new string(Enumerable.Range(0, 6).Select(_ => chars[UnityEngine.Random.Range(0, chars.Length)]).ToArray());
+        } while (existingIds.Contains(newId));
+
+        return newId;
     }
 
     public static void SaveAccount(Account account)

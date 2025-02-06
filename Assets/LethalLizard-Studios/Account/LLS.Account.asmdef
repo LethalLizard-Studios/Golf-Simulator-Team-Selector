@@ -2,7 +2,8 @@
     "name": "LLS.Account",
     "rootNamespace": "",
     "references": [
-        "GUID:6055be8ebefd69e48b49212b09b47b2f"
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:5803d90ba8db39e458141c6e36d5b60c"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

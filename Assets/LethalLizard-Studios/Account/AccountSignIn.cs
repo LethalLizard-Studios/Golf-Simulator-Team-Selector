@@ -8,6 +8,17 @@ public class AccountSignIn : MonoBehaviour
 
     [SerializeField] private UnityEvent onSuccess;
     [SerializeField] private UnityEvent onFailure;
+    [SerializeField] private UnityEvent onReset;
+
+    private void Awake()
+    {
+        WindowsVoice.initSpeech();
+    }
+
+    private void OnEnable()
+    {
+        onReset.Invoke();
+    }
 
     public void SignIn()
     {
@@ -15,7 +26,9 @@ public class AccountSignIn : MonoBehaviour
 
         if (loadedAccount != null)
         {
+            Debug.Log($"Welcome back, {loadedAccount.username} ({loadedAccount.identification})");
             onSuccess.Invoke();
+            WindowsVoice.speak($"Welcome back {loadedAccount.username}");
             return;
         }
 
