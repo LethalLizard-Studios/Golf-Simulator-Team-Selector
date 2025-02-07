@@ -1,8 +1,6 @@
+using Palmmedia.ReportGenerator.Core.Parser.Analysis;
 using System.Collections.Generic;
-using System.Linq;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class Players : MonoBehaviour
 {
@@ -13,98 +11,49 @@ public class Players : MonoBehaviour
         Instance = this;
     }
 
+    [SerializeField] private InputShot inputShot;
+    [SerializeField] private ActiveAccounts activeAccounts;
     [SerializeField] private Recap recap;
     [SerializeField] private GameObject teamsScreen;
     [SerializeField] private GameObject playerPrefab;
     [SerializeField] private Transform redParent;
 
-    public GameObject numOfPlayersScreen;
     public int numberOfPlayers = 0;
-
     public List<PlayerData> playerData = new List<PlayerData>();
-
     public List<int> playerScore = new List<int>();
 
-    public Color[] colors;
-
-    private Dictionary<int, Color> _availableColors = new Dictionary<int, Color>();
+    public InputShot shot;
+    public List<Club> clubs = new List<Club>();
 
     [SerializeField] private Color[] poduimFinishColor = new Color[3];
     [SerializeField] private Color[] teamColors = new Color[2];
 
     [SerializeField] private ClubSelection clubSelection;
 
-    [SerializeField] private Image colorPreview;
-    [SerializeField] private TMP_InputField nameInput;
-    [SerializeField] private TMP_InputField playersInput;
-    [SerializeField] private TMP_Dropdown musicDropdown;
-
-    public InputShot shot;
-
-    public List<Club> clubs = new List<Club>();
-
-    private int currentColor = 0;
-    private int currentColorIndex = 0;
-
-    private void Start()
+    public void OnEnable()
     {
-        _availableColors.Clear();
-        for (int i = 0; i < colors.Length; i++)
-            _availableColors.Add(i, colors[i]);
-
-        Initialize();
+        AddAllPlayers(activeAccounts.GetAllAcounts());
     }
 
-    public void Initialize()
+    public void AddAllPlayers(Account[] accounts)
     {
-        if (playerData.Count < 1)
+        clubs.Clear();
+        playerData.Clear();
+
+        numberOfPlayers = accounts.Length;
+
+        for (int i = 0; i < clubSelection.GetClubCount(); i++)
         {
-            numOfPlayersScreen.SetActive(true);
-        }
-        else
-        {
-            numOfPlayersScreen.SetActive(false);
-        }
-
-        colorPreview.color = _availableColors.Values.ToArray()[0];
-        currentColor = 0;
-        currentColorIndex = _availableColors.Keys.ToArray()[0];
-
-        nameInput.text = string.Empty;
-    }
-
-    public void ChangeColor()
-    {
-        if (currentColor + 1 < _availableColors.Count)
-            currentColor++;
-        else
-            currentColor = 0;
-
-        colorPreview.color = _availableColors.Values.ToArray()[currentColor];
-        currentColorIndex = _availableColors.Keys.ToArray()[currentColor];
-    }
-
-    public void ConfirmPlayer()
-    {
-        if (playersInput.text.Length <= 0 || int.Parse(playersInput.text) == 0)
-            return;
-
-        if (numOfPlayersScreen.activeSelf)
-        {
-            numberOfPlayers = int.Parse(playersInput.text);
-
-            for (int i = 0; i < clubSelection.GetClubCount(); i++)
-            {
-                clubs.Add(new Club(clubSelection.GetClub(i).GetDisplayName(), numberOfPlayers));
-            }
+            clubs.Add(new Club(clubSelection.GetClub(i).GetDisplayName(), numberOfPlayers));
         }
 
-        playerData.Add(new PlayerData(nameInput.text, currentColorIndex, musicDropdown.value));
-        _availableColors.Remove(currentColorIndex);
+        for (int i = 0; i < accounts.Length; i++)
+        {
+            Debug.Log(accounts[i].username);
+            playerData.Add(new PlayerData(accounts[i]));
+        }
 
-        shot.PlayerAdded();
-
-        Initialize();
+        inputShot.Initialize();
     }
 
     public void DecideTeams()
@@ -123,8 +72,8 @@ public class Players : MonoBehaviour
             GameObject playerObj = Instantiate(playerPrefab, redParent);
             Player current = playerObj.GetComponent<Player>();
 
-            current.playerName = playerData[i].displayName;
-            current.playerColor =colors[playerData[i].colorIndex];
+            current.playerName = playerData[i].account.username;
+            current.playerColor =playerData[i].account.preferredColor;
             current.totalScore = playerScore[i];
 
             if (playerScore[i] > goldScore)

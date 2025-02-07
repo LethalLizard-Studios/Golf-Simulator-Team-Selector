@@ -6,6 +6,7 @@ public class ClubToggle : MonoBehaviour
 {
     [SerializeField] private string displayName;
     [SerializeField] private Image selectedImage;
+    [SerializeField] private Image clubIconImage;
 
     private Toggle _toggle;
     private ClubSelection _clubSelection;
@@ -23,7 +24,7 @@ public class ClubToggle : MonoBehaviour
 
     public Sprite GetIcon()
     {
-        return selectedImage.sprite;
+        return clubIconImage.sprite;
     }
 
     public void Pressed()

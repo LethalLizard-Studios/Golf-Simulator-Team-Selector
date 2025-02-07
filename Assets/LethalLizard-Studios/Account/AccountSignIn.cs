@@ -4,6 +4,8 @@ using UnityEngine.Events;
 
 public class AccountSignIn : MonoBehaviour
 {
+    [SerializeField] private ActiveAccounts activeAccounts;
+
     [SerializeField] private TMP_InputField inputField;
 
     [SerializeField] private UnityEvent onSuccess;
@@ -26,6 +28,7 @@ public class AccountSignIn : MonoBehaviour
 
         if (loadedAccount != null)
         {
+            activeAccounts.AddAccount(loadedAccount);
             Debug.Log($"Welcome back, {loadedAccount.username} ({loadedAccount.identification})");
             onSuccess.Invoke();
             WindowsVoice.speak($"Welcome back {loadedAccount.username}");

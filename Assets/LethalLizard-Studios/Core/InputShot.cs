@@ -15,7 +15,6 @@ public class InputShot : MonoBehaviour
     [SerializeField] private Transform shotParent;
 
     [SerializeField] private GameObject shotScreen;
-    [SerializeField] private GameObject playerScreen;
 
     [SerializeField] private Transform carryMarker;
 
@@ -43,41 +42,48 @@ public class InputShot : MonoBehaviour
 
     private int currentShot = 1;
     private int currentPlayer = 0;
-    private int currentClub = 0;
+    private int _currentClub = 0;
 
     private List<GameObject> displayShots = new List<GameObject>();
-
-    private void Start()
-    {
-        carryMarker.gameObject.SetActive(false);
-
-        AddPlayer();
-
-        clubNameTxt.text = clubSelection.GetClub(0).GetDisplayName();
-        clubImage.sprite = clubSelection.GetClub(0).GetIcon();
-
-        shotNumTxt.text = currentShot + " / " + numberOfShots;
-    }
-
-    private void AddPlayer()
-    {
-        shotScreen.SetActive(false);
-        playerScreen.SetActive(true);
-    }
-
-    public void PlayerAdded()
-    {
-        playerNameTxt.text = Players.Instance.playerData[currentPlayer].displayName;
-
-        shotScreen.SetActive(true);
-        playerScreen.SetActive(false);
-    }
 
     private List<Vector3> lastPos = new List<Vector3>();
     private List<int> lastScore = new List<int>();
 
-    void Update()
+    private bool isInitialized = false;
+
+    public void Initialize()
     {
+        carryMarker.gameObject.SetActive(false);
+
+        _currentClub = 0;
+        RefreshClubDisplay();
+
+        shotNumTxt.text = currentShot + " / " + numberOfShots;
+
+        ChangeTargetPlayer();
+
+        isInitialized = true;
+    }
+
+    private void RefreshClubDisplay()
+    {
+        clubNameTxt.text = clubSelection.GetClub(_currentClub).GetDisplayName();
+        clubImage.sprite = clubSelection.GetClub(_currentClub).GetIcon();
+        clubImage.transform.DOScale(1.3f, 0.5f / 2)
+                           .SetEase(Ease.OutBack)
+                           .OnComplete(() =>
+                           {
+                               clubImage.transform.DOScale(1f, 0.5f / 2).SetEase(Ease.InBack);
+                           });
+    }
+
+    private void Update()
+    {
+        if (!isInitialized)
+        {
+            return;
+        }
+
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             carryInput.text = Random.Range(10, 300).ToString();
@@ -114,7 +120,7 @@ public class InputShot : MonoBehaviour
                     carryMarker.localPosition = markerPos;
                     carryMarker.gameObject.SetActive(true);
 
-                    Club club = Players.Instance.clubs[currentClub];
+                    Club club = Players.Instance.clubs[_currentClub];
 
                     if (club.playerShots[currentPlayer] == null || club.playerShots[currentPlayer] == Vector2.zero)
                         club.playerShots[currentPlayer] = new Vector2(markerPos.x, markerPos.y);
@@ -124,7 +130,7 @@ public class InputShot : MonoBehaviour
                     if (result > club.bestPlayerResult)
                     {
                         club.bestPlayerResult = result;
-                        club.bestPlayerName = Players.Instance.playerData[currentPlayer].displayName;
+                        club.bestPlayerName = Players.Instance.playerData[currentPlayer].account.username;
                     }
 
                     break;
@@ -132,7 +138,7 @@ public class InputShot : MonoBehaviour
                     GameObject shotMarker = Instantiate(shotMarkerPrefab, shotParent);
                     displayShots.Add(shotMarker);
 
-                    shotMarker.GetComponent<Image>().color = Players.Instance.colors[Players.Instance.playerData[currentPlayer].colorIndex];
+                    shotMarker.GetComponent<Image>().color = Players.Instance.playerData[currentPlayer].account.preferredColor;
                     shotMarker.transform.localPosition = new Vector3(Mathf.Clamp(offline * 6f, -160f, 160f), carryDist, 0f);
 
                     carryMarker.gameObject.SetActive(false);
@@ -141,7 +147,7 @@ public class InputShot : MonoBehaviour
                     
                     CurvedLine curvedLine = line.GetComponent<CurvedLine>();
                     curvedLine.endPoint = shotMarker.transform.localPosition;
-                    curvedLine.color = Players.Instance.colors[Players.Instance.playerData[currentPlayer].colorIndex];
+                    curvedLine.color = Players.Instance.playerData[currentPlayer].account.preferredColor;
                     curvedLine.controlPoint = new Vector2(0, curvedLine.endPoint.y * 0.8f);
                     curvedLine.enabled = true;
 
@@ -175,33 +181,19 @@ public class InputShot : MonoBehaviour
 
                         if (currentPlayer < Players.Instance.numberOfPlayers)
                         {
-                            if (currentClub == 0)
-                            {
-                                AddPlayer();
-                            }
-                            else
-                            {
-                                ChangeTargetPlayer();
-                            }
+                            ChangeTargetPlayer();
                         }
                         else
                         {
-                            if (currentClub + 1 < clubSelection.GetClubCount())
+                            if (_currentClub + 1 < clubSelection.GetClubCount())
                             {
                                 foreach (GameObject marker in displayShots)
                                 {
                                     Destroy(marker);
                                 }
 
-                                currentClub++;
-                                clubNameTxt.text = clubSelection.GetClub(0).GetDisplayName();
-                                clubImage.sprite = clubSelection.GetClub(0).GetIcon();
-                                clubImage.transform.DOScale(1.3f, 0.5f / 2)
-                                    .SetEase(Ease.OutBack)
-                                    .OnComplete(() =>
-                                    {
-                                        clubImage.transform.DOScale(1f, 0.5f / 2).SetEase(Ease.InBack);
-                                    });
+                                _currentClub++;
+                                RefreshClubDisplay();
 
                                 currentPlayer = 0;
                                 ChangeTargetPlayer();
@@ -236,19 +228,20 @@ public class InputShot : MonoBehaviour
 
     private void ChangeTargetPlayer()
     {
-        playerNameTxt.text = Players.Instance.playerData[currentPlayer].displayName;
+        playerNameTxt.text = Players.Instance.playerData[currentPlayer].account.username;
         playerNameTxt.transform.DOScale(1.3f, 0.5f / 2)
             .SetEase(Ease.OutBack)
             .OnComplete(() =>
             {
                 playerNameTxt.transform.DOScale(1f, 0.5f / 2).SetEase(Ease.InBack);
             });
-
-        //musicKits.SelectSong(Players.Instance.playerData[currentPlayer].turnMusicIndex);
     }
 
     public int CalcShotScore(int carryDist, float offline)
     {
+        Account account = Players.Instance.playerData[currentPlayer].account;
+        LiveTip.SpeakTip(account.username, account.isRightHanded, offline, carryDist);
+
         int score = Mathf.RoundToInt(carryDist * Mathf.Clamp(((1 / (1 + Mathf.Abs(offline))) * OFFLINE_WEIGHT), 0.75f, 1f));
 
         return score;

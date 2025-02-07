@@ -4,6 +4,7 @@ using UnityEngine.Events;
 
 public class AccountCreate : MonoBehaviour
 {
+    [SerializeField] private ActiveAccounts activeAccounts;
     [SerializeField] private TextMeshProUGUI displayIdentification;
 
     [SerializeField] private TMP_InputField accountNameInput;
@@ -14,6 +15,7 @@ public class AccountCreate : MonoBehaviour
     [SerializeField] private UnityEvent onReset;
 
     private Color selectedColor = Color.green;
+    private bool isRightHanded = true;
 
     public void Create()
     {
@@ -21,8 +23,9 @@ public class AccountCreate : MonoBehaviour
         string identification = AccountManager.GenerateUniqueIdentification();
         string musicKit = musicKits.GetMusicName();
 
-        Account account = new Account(username, identification, musicKit, selectedColor);
+        Account account = new Account(username, identification, musicKit, selectedColor, isRightHanded);
         AccountManager.SaveAccount(account);
+        activeAccounts.AddAccount(account);
 
         WindowsVoice.speak("Please write down or take a picture to use this account in the future");
 

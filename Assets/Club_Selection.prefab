@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 326310110466937908}
   - component: {fileID: 7803272155845608316}
   m_Layer: 5
-  m_Name: Image (2)
+  m_Name: Curved
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -102,7 +102,7 @@ GameObject:
   - component: {fileID: 698638544952631751}
   - component: {fileID: 2179053112100819656}
   m_Layer: 5
-  m_Name: Image (1)
+  m_Name: Club-Icon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -621,6 +621,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Driver
   selectedImage: {fileID: 2282443345570493560}
+  clubIconImage: {fileID: 2179053112100819656}
 --- !u!114 &6269249213095843139
 MonoBehaviour:
   m_ObjectHideFlags: 0
